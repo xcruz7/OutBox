@@ -18,4 +18,10 @@ export const ENV = {
   EMAIL_RATE_LIMIT_DURATION_MS: parseInt(process.env.EMAIL_RATE_LIMIT_DURATION_MS || '1000', 10),
   ETHEREAL_USER: process.env.ETHEREAL_USER || '',
   ETHEREAL_PASS: process.env.ETHEREAL_PASS || '',
+  // Optional Real SMTP (e.g. Gmail) for sending to actual inboxes
+  SMTP_SERVICE: process.env.SMTP_SERVICE || '',
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
 };
