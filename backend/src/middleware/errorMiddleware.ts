@@ -10,7 +10,7 @@ export function errorHandler(
 ): void {
   console.error('[Error Middleware]', err);
 
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || (err.message === 'Not allowed by CORS' ? 403 : 500);
   const message = err.message || 'Internal Server Error';
 
   sendError(res, message, statusCode, err.errors || null);

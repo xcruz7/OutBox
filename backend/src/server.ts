@@ -1,11 +1,11 @@
 import { app } from './app.js';
-import { ENV } from './config/env.js';
+import { ENV, assertRuntimeConfiguration } from './config/env.js';
 import { connectDB, prisma } from './config/database.js';
-import { reconcileScheduledJobs } from './services/recoveryService.js';
 import { emailQueue } from './queues/emailQueue.js';
 
 async function bootstrap() {
   try {
+    assertRuntimeConfiguration('api');
     console.log('====================================================');
     console.log('   Starting Outbox Labs Email Scheduler API Server  ');
     console.log('====================================================');
@@ -13,15 +13,7 @@ async function bootstrap() {
     // 1. Establish MySQL Database Connection
     await connectDB();
 
-    // 2. Perform Startup Reconciliation & Job Recovery
-    console.log('[Bootstrap] Running startup job reconciliation...');
-    try {
-      await reconcileScheduledJobs();
-    } catch (reconcileErr) {
-      console.warn('[Bootstrap] Notice: Startup reconciliation skipped or deferred:', reconcileErr);
-    }
-
-    // 3. Start HTTP Server
+    // 2. Start HTTP Server. The persistent worker owns queue reconciliation.
     const server = app.listen(ENV.PORT, () => {
       console.log(`[Server] API Server listening on http://localhost:${ENV.PORT}`);
       console.log(`[Server] Environment: ${ENV.NODE_ENV}`);

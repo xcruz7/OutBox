@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { getScheduledEmails, cancelEmail } from '../services/emailService.js';
 import { Email } from '../types/index.js';
 import { ScheduledTable } from '../components/emails/ScheduledTable.js';
 import { useToast } from '../context/ToastContext.js';
-import { Plus, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 export const ScheduledEmailsPage: React.FC = () => {
-  const { openCompose } = useOutletContext<{ openCompose: () => void }>();
   const { showToast } = useToast();
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +50,10 @@ export const ScheduledEmailsPage: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="page-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Scheduled Queue</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-white tracking-tight">Scheduled Queue</h1>
+          <p className="text-sm text-white/70 mt-1">
             Emails queued in BullMQ awaiting target dispatch timestamp.
           </p>
         </div>
@@ -63,17 +61,10 @@ export const ScheduledEmailsPage: React.FC = () => {
           <button
             onClick={fetchScheduled}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg text-sm bg-white hover:bg-slate-50 transition-colors shadow-sm"
+            className="glass-button flex items-center gap-1.5 px-3 py-2 border rounded-xl text-sm transition-colors shadow-sm disabled:opacity-60"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
-          </button>
-          <button
-            onClick={openCompose}
-            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Compose Email</span>
           </button>
         </div>
       </div>

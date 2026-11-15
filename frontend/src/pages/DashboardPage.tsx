@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useOutletContext, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { getDashboardStats } from '../services/emailService.js';
 import { DashboardMetrics } from '../types/index.js';
 import { Badge } from '../components/common/Badge.js';
@@ -8,13 +8,11 @@ import {
   Clock,
   CheckCircle2,
   AlertTriangle,
-  Plus,
   ArrowUpRight,
   RefreshCw,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
-  const { openCompose } = useOutletContext<{ openCompose: () => void }>();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -76,29 +74,23 @@ export const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="dashboard-heading flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Overview Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Real-time status of your scheduled and dispatched email queues.
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[.19em] text-white/65">Your workspace</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Queue overview</h2>
+          <p className="mt-1 text-sm text-white/70">
+            A clear view of what’s queued, delivered, and needs attention.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchMetrics}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg text-sm bg-white hover:bg-slate-50 transition-colors shadow-sm"
+            className="glass-button flex items-center gap-1.5 px-3 py-2 border rounded-xl text-sm transition-colors shadow-sm disabled:opacity-60"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
-          </button>
-          <button
-            onClick={openCompose}
-            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Schedule Email</span>
           </button>
         </div>
       </div>
@@ -110,7 +102,7 @@ export const DashboardPage: React.FC = () => {
           return (
             <div
               key={idx}
-              className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between"
+              className="glass-card p-5 sm:p-6 flex items-center justify-between transition-transform duration-300 hover:-translate-y-1"
             >
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -129,7 +121,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Architecture Status Panel */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="worker-card p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -153,7 +145,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Recent Activity Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+      <div className="glass-card activity-card p-5 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-slate-800">Recent Queue Activity</h3>
           <Link to="/scheduled" className="text-xs font-semibold text-brand-600 hover:text-brand-700">

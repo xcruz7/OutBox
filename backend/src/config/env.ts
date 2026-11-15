@@ -6,8 +6,12 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 export const ENV = {
   PORT: parseInt(process.env.PORT || '5000', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  FRONTEND_URLS: (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173')
+    .split(',')
+    .map((url) => url.trim().replace(/\/$/, ''))
+    .filter(Boolean),
   DATABASE_URL: process.env.DATABASE_URL || 'mysql://outbox_user:outbox_pass@localhost:3306/outbox_scheduler',
+  REDIS_URL: process.env.REDIS_URL || '',
   REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
   REDIS_PORT: parseInt(process.env.REDIS_PORT || '6379', 10),
   REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
@@ -24,4 +28,22 @@ export const ENV = {
   SMTP_PORT: parseInt(process.env.SMTP_PORT || '587', 10),
   SMTP_USER: process.env.SMTP_USER || '',
   SMTP_PASS: process.env.SMTP_PASS || '',
+  SMTP_FROM: process.env.SMTP_FROM || '',
 };
+
+export function assertRuntimeConfiguration(runtime: 'api' | 'worker'): void {
+  if (ENV.NODE_ENV !== 'production') return;
+
+  const missing = [
+    !process.env.DATABASE_URL && 'DATABASE_URL',
+    !process.env.REDIS_URL && 'REDIS_URL',
+    runtime === 'api' && !process.env.JWT_SECRET && 'JWT_SECRET',
+    runtime === 'api' && !process.env.FRONTEND_URL && !process.env.CLIENT_URL && 'FRONTEND_URL',
+    runtime === 'worker' && !process.env.SMTP_USER && 'SMTP_USER',
+    runtime === 'worker' && !process.env.SMTP_PASS && 'SMTP_PASS',
+  ].filter(Boolean);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required production environment variables: ${missing.join(', ')}`);
+  }
+}

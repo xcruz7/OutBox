@@ -47,3 +47,17 @@ export interface ScheduleEmailPayload {
   body: string;
   scheduledAt: string;
 }
+
+export interface BulkScheduleEmailPayload {
+  recipients: string[];
+  subject: string;
+  body: string;
+  scheduledAt: string;
+}
+
+export interface BulkScheduleEmailResult {
+  emails: Email[];
+  count: number;
+  scheduledCount: number;
+  skippedDuplicates: number;
+}

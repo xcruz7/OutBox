@@ -2,15 +2,21 @@
   "name": "outbox-backend",
   "version": "1.0.0",
   "description": "Outbox Labs Scheduled Email Management Backend",
+  "engines": {
+    "node": "22.x"
+  },
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "worker": "tsx watch src/workers/emailWorker.ts",
     "build": "tsc",
+    "build:production": "npm run prisma:generate:postgres && tsc",
     "start": "node dist/server.js",
     "start:worker": "node dist/workers/emailWorker.js",
     "prisma:generate": "prisma generate",
+    "prisma:generate:postgres": "prisma generate --schema prisma/postgresql/schema.prisma",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:production": "prisma migrate deploy --schema prisma/postgresql/schema.prisma",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "test": "jest --config jest.config.cjs --runInBand --detectOpenHandles"

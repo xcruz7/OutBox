@@ -41,6 +41,10 @@ export async function getEmailTransporter(): Promise<{
       });
     }
 
+    if (ENV.NODE_ENV === 'production') {
+      await transporterInstance.verify();
+    }
+
     return { transporter: transporterInstance, user: senderUser, isRealSMTP: true };
   }
 
@@ -49,6 +53,9 @@ export async function getEmailTransporter(): Promise<{
   let pass = ENV.ETHEREAL_PASS;
 
   if (!user || !pass) {
+    if (ENV.NODE_ENV === 'production') {
+      throw new Error('SMTP_USER and SMTP_PASS are required for production email delivery.');
+    }
     console.log('[Email] No SMTP credentials provided. Creating an Ethereal test sandbox account...');
     const testAccount = await nodemailer.createTestAccount();
     user = testAccount.user;
@@ -70,6 +77,10 @@ export async function getEmailTransporter(): Promise<{
   });
 
   return { transporter: transporterInstance, user, isRealSMTP: false };
+}
+
+export function getSenderAddress(user: string): string {
+  return ENV.SMTP_FROM || `"Outbox Scheduler" <${user}>`;
 }
 
 export function getEmailPreviewUrl(info: nodemailer.SentMessageInfo): string | false {

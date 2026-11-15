@@ -3,11 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import { ENV } from './config/env.js';
+import { ENV, assertRuntimeConfiguration } from './config/env.js';
 import routes from './routes/index.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 export const app = express();
+
+assertRuntimeConfiguration('api');
 
 // Security headers
 app.use(helmet());
@@ -19,7 +21,8 @@ app.use(
       // Allow requests with no origin (like mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
       // In development, allow localhost variations
-      if (ENV.NODE_ENV === 'development' || origin === ENV.CLIENT_URL) {
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      if (ENV.NODE_ENV === 'development' || ENV.FRONTEND_URLS.includes(normalizedOrigin)) {
         return callback(null, true);
       }
       callback(new Error('Not allowed by CORS'));
@@ -56,3 +59,5 @@ app.use('/api', routes);
 
 // Centralized error handler
 app.use(errorHandler);
+
+export default app;

@@ -162,6 +162,7 @@ A critical requirement of the system is surviving server, worker, or Redis crash
   - RFC 5322 email syntax validation.
   - Future timestamp validation (prevents scheduling in the past).
   - Quick-delay presets (`+30 Seconds`, `+2 Minutes`, `+10 Minutes`) for rapid testing.
+- [x] **Recipient List Upload**: Import up to 500 unique recipients from a CSV or TXT file and schedule the same message and delivery time for each address.
 - [x] **Scheduled Emails Table**: Shows recipient, subject, scheduled execution timestamp, status badge, and one-click cancel action.
 - [x] **Sent Emails Table**: Shows recipient, subject, delivery timestamp, retry attempts, and direct clickable **"View in Ethereal"** preview links.
 - [x] **Toast Notifications**: Non-intrusive feedback on email creation, errors, and cancellations.
@@ -313,6 +314,7 @@ npm test
 | `POST` | `/api/auth/login` | Login and receive JWT (`email`, `password`) | No |
 | `GET` | `/api/auth/profile` | Retrieve logged-in user profile | Yes |
 | `POST` | `/api/emails/schedule` | Schedule email (`recipient`, `subject`, `body`, `scheduledAt`) | Yes |
+| `POST` | `/api/emails/schedule-bulk` | Schedule one message and time for a recipient list (`recipients`, `subject`, `body`, `scheduledAt`) | Yes |
 | `GET` | `/api/emails/scheduled` | List user's scheduled/pending emails | Yes |
 | `GET` | `/api/emails/sent` | List user's sent emails with Ethereal preview links | Yes |
 | `GET` | `/api/emails/:id` | Get individual email details | Yes |

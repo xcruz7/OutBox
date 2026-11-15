@@ -24,6 +24,10 @@ export interface ScheduleEmailInput {
   scheduledAt: string; // ISO 8601 string
 }
 
+export interface BulkScheduleEmailInput extends Omit<ScheduleEmailInput, 'recipient'> {
+  recipients: string[];
+}
+
 export interface SendEmailJobData {
   emailId: string;
   userId: string;

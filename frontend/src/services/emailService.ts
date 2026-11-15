@@ -1,5 +1,11 @@
 import { api } from './api.js';
-import { Email, DashboardMetrics, ScheduleEmailPayload } from '../types/index.js';
+import {
+  BulkScheduleEmailPayload,
+  BulkScheduleEmailResult,
+  DashboardMetrics,
+  Email,
+  ScheduleEmailPayload,
+} from '../types/index.js';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -9,6 +15,14 @@ interface ApiResponse<T> {
 
 export async function scheduleEmail(payload: ScheduleEmailPayload) {
   const response = await api.post<ApiResponse<Email>>('/emails/schedule', payload);
+  return response.data.data;
+}
+
+export async function scheduleEmails(payload: BulkScheduleEmailPayload) {
+  const response = await api.post<ApiResponse<BulkScheduleEmailResult>>(
+    '/emails/schedule-bulk',
+    payload
+  );
   return response.data.data;
 }
 

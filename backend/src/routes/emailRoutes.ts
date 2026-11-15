@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createScheduledEmail,
+  createBulkScheduledEmails,
   listScheduledEmails,
   listSentEmails,
   getEmailDetails,
@@ -14,6 +15,7 @@ const router = Router();
 router.use(authenticate);
 
 router.post('/schedule', createScheduledEmail);
+router.post('/schedule-bulk', createBulkScheduledEmails);
 router.get('/scheduled', listScheduledEmails);
 router.get('/sent', listSentEmails);
 router.get('/:id', getEmailDetails);

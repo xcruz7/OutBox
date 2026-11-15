@@ -1,10 +1,13 @@
 import { Worker, Job } from 'bullmq';
 import { prisma, connectDB } from '../config/database.js';
 import { redisConnectionOptions } from '../config/redis.js';
-import { getEmailTransporter, getEmailPreviewUrl } from '../config/email.js';
-import { ENV } from '../config/env.js';
+import { getEmailTransporter, getEmailPreviewUrl, getSenderAddress } from '../config/email.js';
+import { ENV, assertRuntimeConfiguration } from '../config/env.js';
 import { EMAIL_QUEUE_NAME } from '../queues/emailQueue.js';
 import { SendEmailJobData } from '../types/index.js';
+import { reconcileScheduledJobs } from '../services/recoveryService.js';
+
+assertRuntimeConfiguration('worker');
 
 console.log('----------------------------------------------------');
 console.log('   Outbox Labs Email Worker Process Starting');
@@ -50,7 +53,7 @@ async function processEmailJob(job: Job<SendEmailJobData>): Promise<void> {
     const { transporter, user } = await getEmailTransporter();
 
     const info = await transporter.sendMail({
-      from: `"Outbox Labs Scheduler" <${user}>`,
+      from: getSenderAddress(user),
       to: email.recipient,
       subject: email.subject,
       text: email.body,
@@ -102,36 +105,45 @@ async function processEmailJob(job: Job<SendEmailJobData>): Promise<void> {
   }
 }
 
-export const emailWorker = new Worker<SendEmailJobData>(
-  EMAIL_QUEUE_NAME,
-  processEmailJob,
-  {
-    connection: redisConnectionOptions,
-    concurrency: ENV.WORKER_CONCURRENCY,
-    limiter: {
-      max: ENV.EMAIL_RATE_LIMIT_MAX,
-      duration: ENV.EMAIL_RATE_LIMIT_DURATION_MS,
-    },
-  }
-);
+let emailWorker: Worker<SendEmailJobData> | null = null;
 
-emailWorker.on('completed', (job) => {
-  console.log(`[Worker Event] Job ${job.id} completed successfully.`);
-});
+function createEmailWorker(): Worker<SendEmailJobData> {
+  const worker = new Worker<SendEmailJobData>(
+    EMAIL_QUEUE_NAME,
+    processEmailJob,
+    {
+      connection: redisConnectionOptions,
+      concurrency: ENV.WORKER_CONCURRENCY,
+      limiter: {
+        max: ENV.EMAIL_RATE_LIMIT_MAX,
+        duration: ENV.EMAIL_RATE_LIMIT_DURATION_MS,
+      },
+    }
+  );
 
-emailWorker.on('failed', (job, err) => {
-  console.error(`[Worker Event] Job ${job?.id} failed with error: ${err.message}`);
-});
+  worker.on('completed', (job) => {
+    console.log(`[Worker Event] Job ${job.id} completed successfully.`);
+  });
 
-emailWorker.on('error', (err) => {
-  console.error('[Worker Event] Worker encountered an error:', err);
-});
+  worker.on('failed', (job, err) => {
+    console.error(`[Worker Event] Job ${job?.id} failed with error: ${err.message}`);
+  });
+
+  worker.on('error', (err) => {
+    console.error('[Worker Event] Worker encountered an error:', err);
+  });
+
+  return worker;
+}
 
 // Initialize DB and Ethereal connection
 async function startWorker() {
   try {
     await connectDB();
+    console.log('[Worker] Running startup job reconciliation...');
+    await reconcileScheduledJobs();
     await getEmailTransporter();
+    emailWorker = createEmailWorker();
     console.log('[Worker] Worker process is listening for scheduled email jobs...');
   } catch (err) {
     console.error('[Worker] Fatal error starting worker:', err);
@@ -145,7 +157,7 @@ startWorker();
 async function gracefulShutdown(signal: string) {
   console.log(`[Worker] Received ${signal}. Closing worker gracefully...`);
   try {
-    await emailWorker.close();
+    await emailWorker?.close();
     await prisma.$disconnect();
     console.log('[Worker] Graceful shutdown completed.');
     process.exit(0);

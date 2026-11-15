@@ -1,6 +1,6 @@
 import { prisma } from '../config/database.js';
 import { enqueueEmailJob, removeEmailJob } from '../queues/emailQueue.js';
-import { ScheduleEmailInput } from '../types/index.js';
+import { BulkScheduleEmailInput, ScheduleEmailInput } from '../types/index.js';
 
 export async function scheduleEmail(userId: string, input: ScheduleEmailInput) {
   const { recipient, subject, body, scheduledAt } = input;
@@ -14,14 +14,19 @@ export async function scheduleEmail(userId: string, input: ScheduleEmailInput) {
     throw error;
   }
 
-  // Must be in the future (minimum 5 seconds buffer to account for network latency)
-  if (targetDate.getTime() <= now.getTime()) {
+  let delayMs = targetDate.getTime() - now.getTime();
+
+  // If timestamp is more than 60 seconds in the past, reject
+  if (delayMs < -60000) {
     const error = new Error('Scheduled time must be in the future.');
     (error as any).statusCode = 400;
     throw error;
   }
 
-  const delayMs = targetDate.getTime() - now.getTime();
+  // Gracefully handle near-immediate schedules or sub-minute network skew
+  if (delayMs < 0) {
+    delayMs = 0;
+  }
 
   // 1. Database-first persistence (ACID source of truth)
   const email = await prisma.email.create({
@@ -55,6 +60,22 @@ export async function scheduleEmail(userId: string, input: ScheduleEmailInput) {
     });
     throw new Error('Email saved, but queue dispatch failed. Scheduled recovery will retry.');
   }
+}
+
+/**
+ * Schedules one independent email record and queue job per recipient. This keeps
+ * existing retries, cancellation, and delivery tracking intact for bulk sends.
+ */
+export async function scheduleBulkEmails(userId: string, input: BulkScheduleEmailInput) {
+  const { recipients, subject, body, scheduledAt } = input;
+  const emails = [];
+
+  // Process imports sequentially so a large recipient list does not flood Redis.
+  for (const recipient of recipients) {
+    emails.push(await scheduleEmail(userId, { recipient, subject, body, scheduledAt }));
+  }
+
+  return emails;
 }
 
 export async function getScheduledEmails(userId: string) {

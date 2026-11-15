@@ -19,9 +19,9 @@ if (ENV.NODE_ENV !== 'production') {
 export async function connectDB(): Promise<void> {
   try {
     await prisma.$connect();
-    console.log('[Database] MySQL connected successfully via Prisma.');
+    console.log('[Database] Connected successfully via Prisma.');
   } catch (error) {
-    console.error('[Database] MySQL connection error:', error);
+    console.error('[Database] Connection error:', error);
     throw error;
   }
 }
