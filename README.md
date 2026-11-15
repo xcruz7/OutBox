@@ -1,4 +1,4 @@
-# Outbox Labs – Scheduled Email Management System
+# OutBox — Outbox Labs Scheduled Email Management System
 
 A production-grade, distributed asynchronous email scheduling and dispatch engine built for the **Outbox Labs Software Development Engineer Intern** technical evaluation.
 
